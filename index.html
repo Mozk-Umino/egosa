@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>えごさ ― えいごをさわる</title>
+<meta name="description" content="日本語で探して、英語の記事を読むための小さな道具。単語をタップすると訳が出て、ふりがなが貯まっていきます。">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f766e">
+<style>
+  :root{ --teal:#0f766e; --ink:#1f2937; --sub:#6b7280; --line:#e5e7eb; --bg:#fafaf9; --card:#fff; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif; color:var(--ink); background:var(--bg); }
+  header{ background:var(--teal); color:#fff; padding:14px 16px 12px; }
+  header h1{ margin:0; font-size:20px; letter-spacing:.02em; }
+  header p{ margin:4px 0 0; font-size:12px; opacity:.9; }
+  main{ max-width:720px; margin:0 auto; padding:14px 14px 96px; }
+  section{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:14px; }
+  h2{ font-size:15px; margin:0 0 10px; }
+  .row{ display:flex; gap:8px; }
+  input[type=text],input[type=url]{ flex:1; font-size:16px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; min-width:0; }
+  button{ font-size:15px; padding:10px 14px; border:0; border-radius:10px; background:var(--teal); color:#fff; cursor:pointer; white-space:nowrap; }
+  button.sub{ background:#e7e5e4; color:var(--ink); }
+  button:disabled{ opacity:.5; }
+  .hint{ font-size:12px; color:var(--sub); margin-top:8px; line-height:1.6; }
+  .en{ font-size:14px; background:#f0fdfa; border:1px solid #ccfbf1; border-radius:8px; padding:8px 10px; margin-top:10px; word-break:break-word; }
+  .results a{ display:block; padding:10px 4px; border-bottom:1px solid var(--line); color:var(--ink); text-decoration:none; }
+  .results a b{ color:var(--teal); font-weight:600; }
+  .results small{ color:var(--sub); display:block; margin-top:2px; line-height:1.5; }
+  #article{ line-height:2.1; font-size:17px; }
+  #article p{ margin:0 0 1em; }
+  #article rt{ font-size:9px; color:var(--teal); }
+  .w{ cursor:pointer; border-radius:3px; }
+  .w:active{ background:#ccfbf1; }
+  #bar{ position:fixed; left:0; right:0; bottom:0; background:#111827; color:#fff; padding:12px 16px calc(12px + env(safe-area-inset-bottom)); transform:translateY(110%); transition:transform .18s; }
+  #bar.show{ transform:none; }
+  #bar .word{ font-size:18px; font-weight:700; }
+  #bar .gloss{ font-size:14px; opacity:.92; margin-left:10px; }
+  #bar .acts{ margin-top:8px; display:flex; gap:8px; }
+  #bar button{ padding:7px 12px; font-size:13px; }
+  footer{ font-size:11px; color:var(--sub); text-align:center; padding:8px 0 20px; line-height:1.7; }
+  details summary{ font-size:14px; cursor:pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>えごさ</h1>
+  <p>えいごをさわる ― 日本語で探して、英語を読む</p>
+</header>
+<main>
+  <section>
+    <h2>英語の記事をさがす</h2>
+    <div class="row">
+      <input type="text" id="q" placeholder="日本語で入力（例: 睡眠 質 を上げる）" autocomplete="off">
+      <button id="searchBtn">さがす</button>
+    </div>
+    <div id="enBox"></div>
+    <div id="results" class="results"></div>
+    <p class="hint">入力した日本語を英語に直してから、英語のページだけを探します。アプリ内の一覧表示には検索の中継（Worker）の設定が必要です。未設定のときは、外部の英語検索を開くボタンが出ます。</p>
+  </section>
+
+  <section>
+    <h2>記事をひらく</h2>
+    <div class="row">
+      <input type="url" id="url" placeholder="英語記事のURLを貼る" autocomplete="off">
+      <button id="openBtn">ひらく</button>
+    </div>
+    <p class="hint">検索結果をタップしても開けます。本文だけを取り出して表示するので、広告やメニューは入りません。</p>
+  </section>
+
+  <section id="readerSec" hidden>
+    <h2 id="artTitle">記事</h2>
+    <div id="article"></div>
+  </section>
+
+  <section>
+    <details>
+      <summary>設定（検索の中継URL・貯まったふりがな）</summary>
+      <p class="hint">Brave検索の中継（Cloudflare Worker）のURLを入れると、検索結果がこのアプリの中に出ます。鍵は中継の側に置くので、ここにはURLだけを保存します。</p>
+      <div class="row">
+        <input type="url" id="workerUrl" placeholder="https://egosa-search.xxx.workers.dev">
+        <button id="saveWorker" class="sub">保存</button>
+      </div>
+      <p class="hint">貯まったふりがな: <span id="dictCount">0</span> 語
+        <button id="clearDict" class="sub" style="padding:4px 10px;font-size:12px;">全部消す</button></p>
+    </details>
+  </section>
+  <footer>
+    えごさ v0 ― 検索結果の表示には Brave Search を使う場合があります（中継設定時）。<br>
+    訳の取得には MyMemory の無料翻訳を使っています。
+  </footer>
+</main>
+
+<div id="bar">
+  <span class="word" id="barWord"></span><span class="gloss" id="barGloss"></span>
+  <div class="acts">
+    <button id="addRuby">ふりがなに貯める</button>
+    <button id="closeBar" class="sub">閉じる</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const store = {
+  get dict(){ try{ return JSON.parse(localStorage.getItem("egosa_dict")||"{}"); }catch(e){ return {}; } },
+  set dict(d){ localStorage.setItem("egosa_dict", JSON.stringify(d)); },
+  get worker(){ return localStorage.getItem("egosa_worker")||""; },
+  set worker(u){ localStorage.setItem("egosa_worker", u); }
+};
+let currentWord = "", currentGloss = "";
+
+async function translate(text, from, to){
+  const u = "https://api.mymemory.translated.net/get?q=" + encodeURIComponent(text) + "&langpair=" + from + "|" + to;
+  const r = await fetch(u);
+  const j = await r.json();
+  return (j.responseData && j.responseData.translatedText) || "";
+}
+
+function updateDictCount(){ $("#dictCount").textContent = Object.keys(store.dict).length; }
+
+async function doSearch(){
+  const q = $("#q").value.trim();
+  if(!q) return;
+  const btn = $("#searchBtn"); btn.disabled = true; btn.textContent = "検索中…";
+  $("#results").innerHTML = ""; $("#enBox").innerHTML = "";
+  try{
+    let en = q;
+    if(/[^\x00-\x7F]/.test(q)){ en = await translate(q, "ja", "en"); }
+    $("#enBox").innerHTML = '<div class="en">英語の検索語: <b></b></div>';
+    $("#enBox b").textContent = en;
+    const worker = store.worker;
+    if(worker){
+      const r = await fetch(worker.replace(/\/$/,"") + "/search?q=" + encodeURIComponent(en));
+      const j = await r.json();
+      if(j.results && j.results.length){
+        $("#results").innerHTML = j.results.map(x =>
+          '<a href="#" data-url=""><b></b><small></small></a>').join("");
+        [...$("#results").querySelectorAll("a")].forEach((a,i)=>{
+          a.dataset.url = j.results[i].url;
+          a.querySelector("b").textContent = j.results[i].title || j.results[i].url;
+          a.querySelector("small").textContent = j.results[i].description || "";
+          a.addEventListener("click", ev => { ev.preventDefault(); openArticle(a.dataset.url); });
+        });
+      } else {
+        $("#results").innerHTML = '<p class="hint">結果が取れませんでした。</p>';
+      }
+    } else {
+      const brave = "https://search.brave.com/search?q=" + encodeURIComponent(en) + "&country=US&search_lang=en";
+      const ddg = "https://duckduckgo.com/?q=" + encodeURIComponent(en) + "&kl=us-en&ia=web";
+      $("#results").innerHTML =
+        '<p class="hint">中継が未設定なので、外部の英語検索を開きます。記事のURLをコピーして「記事をひらく」に貼ると、このアプリの中で読めます。</p>' +
+        '<div class="row"><button class="sub" id="extBrave">Braveで開く</button><button class="sub" id="extDdg">DuckDuckGoで開く</button></div>';
+      $("#extBrave").onclick = () => window.open(brave, "_blank");
+      $("#extDdg").onclick = () => window.open(ddg, "_blank");
+    }
+  }catch(e){
+    $("#results").innerHTML = '<p class="hint">うまくいきませんでした。通信状態を確かめて、もう一度試してください。</p>';
+  }
+  btn.disabled = false; btn.textContent = "さがす";
+}
+
+function applyRuby(container){
+  const dict = store.dict;
+  container.querySelectorAll(".w").forEach(el => {
+    const key = el.dataset.w;
+    if(dict[key] && !el.querySelector("ruby")){
+      const ruby = document.createElement("ruby");
+      ruby.textContent = el.textContent;
+      const rt = document.createElement("rt"); rt.textContent = dict[key];
+      ruby.appendChild(rt);
+      el.textContent = ""; el.appendChild(ruby);
+    }
+  });
+}
+
+async function openArticle(url){
+  if(!url) return;
+  $("#url").value = url;
+  const sec = $("#readerSec"); sec.hidden = false;
+  $("#artTitle").textContent = "読み込み中…";
+  $("#article").innerHTML = "";
+  sec.scrollIntoView({behavior:"smooth"});
+  try{
+    const r = await fetch("https://r.jina.ai/" + url);
+    const text = await r.text();
+    const lines = text.split(/\n+/).map(s => s.trim()).filter(s => s.length > 40 && !s.startsWith("![") && !s.startsWith("["));
+    const titleLine = lines.find(s => s.startsWith("Title:")) || "";
+    $("#artTitle").textContent = titleLine ? titleLine.replace(/^Title:\s*/,"") : "記事";
+    const paras = lines.filter(s => !s.startsWith("Title:") && !s.startsWith("URL Source:") && !s.startsWith("Markdown Content:")).slice(0, 60);
+    const art = $("#article");
+    art.innerHTML = paras.map(p => {
+      const esc = p.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+      return "<p>" + esc.replace(/[A-Za-z][A-Za-z'’-]*/g, m => '<span class="w" data-w="' + m.toLowerCase() + '">' + m + "</span>") + "</p>";
+    }).join("");
+    applyRuby(art);
+    art.querySelectorAll(".w").forEach(el => el.addEventListener("click", () => tapWord(el)));
+  }catch(e){
+    $("#artTitle").textContent = "記事";
+    $("#article").innerHTML = '<p class="hint">本文が取れませんでした。サイト側で読み取りを止めている場合があります。</p>';
+  }
+}
+
+async function tapWord(el){
+  const w = el.dataset.w;
+  currentWord = w;
+  $("#barWord").textContent = w;
+  const dict = store.dict;
+  if(dict[w]){ currentGloss = dict[w]; $("#barGloss").textContent = dict[w]; }
+  else{
+    $("#barGloss").textContent = "調べ中…";
+    try{ currentGloss = await translate(w, "en", "ja"); }catch(e){ currentGloss = ""; }
+    $("#barGloss").textContent = currentGloss || "（訳が取れませんでした）";
+  }
+  $("#bar").classList.add("show");
+}
+
+$("#addRuby").addEventListener("click", () => {
+  if(currentWord && currentGloss){
+    const d = store.dict; d[currentWord] = currentGloss; store.dict = d;
+    updateDictCount(); applyRuby($("#article"));
+  }
+  $("#bar").classList.remove("show");
+});
+$("#closeBar").addEventListener("click", () => $("#bar").classList.remove("show"));
+$("#searchBtn").addEventListener("click", doSearch);
+$("#q").addEventListener("keydown", e => { if(e.key === "Enter") doSearch(); });
+$("#openBtn").addEventListener("click", () => openArticle($("#url").value.trim()));
+$("#workerUrl").value = store.worker;
+$("#saveWorker").addEventListener("click", () => { store.worker = $("#workerUrl").value.trim(); alert("保存しました"); });
+$("#clearDict").addEventListener("click", () => { if(confirm("貯まったふりがなを全部消しますか？")){ store.dict = {}; updateDictCount(); location.reload(); } });
+updateDictCount();
+if("serviceWorker" in navigator){ navigator.serviceWorker.register("sw.js").catch(()=>{}); }
+</script>
+</body>
+</html>
