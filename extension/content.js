@@ -28,7 +28,20 @@ const launch = document.createElement("button");
 launch.setAttribute("data-egosa-ui","1");
 launch.textContent = "えごさ";
 launch.style.cssText = "position:fixed;right:14px;bottom:14px;z-index:2147483647;background:#0f766e;color:#fff;border:0;border-radius:999px;padding:10px 16px;font-size:14px;font-family:sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.3);cursor:pointer";
-document.documentElement.appendChild(launch);
+function isEnglishPage(){
+  const lang = (document.documentElement.getAttribute("lang") || "").toLowerCase();
+  if(lang.indexOf("en") === 0) return true;
+  if(lang.indexOf("ja") === 0) return false;
+  const t = ((document.title || "") + " " + (document.body ? document.body.innerText || "" : "")).slice(0, 4000);
+  let latin = 0, jp = 0;
+  for(const ch of t){
+    if(/[A-Za-z]/.test(ch)) latin++;
+    else if(/[\u3040-\u30FF\u4E00-\u9FFF]/.test(ch)) jp++;
+  }
+  if(latin + jp < 40) return false;
+  return latin > jp;
+}
+if(isEnglishPage()) document.documentElement.appendChild(launch);
 
 const bar = document.createElement("div");
 bar.setAttribute("data-egosa-ui","1");
