@@ -30,6 +30,9 @@
   #article{ line-height:2.1; font-size:17px; }
   #article p{ margin:0 0 1em; }
   #article rt{ font-size:9px; color:var(--teal); }
+  textarea{ width:100%; font-size:16px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; font-family:inherit; }
+  .fallback{ background:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:12px; }
+  .fallback p{ margin:0 0 10px; line-height:1.7; font-size:15px; }
   .w{ cursor:pointer; border-radius:3px; }
   .w:active{ background:#ccfbf1; }
   .ph{ border-bottom:2px dotted var(--teal); }
@@ -71,6 +74,14 @@
       <button id="openBtn">ひらく</button>
     </div>
     <p class="hint">検索結果をタップしても開けます。本文だけを取り出して表示するので、広告やメニューは入りません。</p>
+    <details id="pasteDetails" style="margin-top:10px;">
+      <summary>テキストを貼って読む（取れないページ用）</summary>
+      <p class="hint">CAPTCHAやログインが必要で本文を取り込めないページは、元のページで本文をコピーして、ここに貼ると同じように読めます。</p>
+      <textarea id="pasteText" rows="6" placeholder="元のページでコピーした本文を貼る"></textarea>
+      <div class="row" style="margin-top:8px;">
+        <button id="pasteBtn">この文で読む</button>
+      </div>
+    </details>
   </section>
 
   <section id="readerSec" hidden>
@@ -92,7 +103,7 @@
     </details>
   </section>
   <footer>
-    えごさ v0.2 ― 検索結果の表示には Brave Search を使う場合があります（中継設定時）。<br>
+    えごさ v0.3 ― 検索結果の表示には Brave Search を使う場合があります（中継設定時）。<br>
     訳の取得には MyMemory の無料翻訳を使っています。
   </footer>
 </main>
@@ -182,6 +193,52 @@ function applyRuby(container){
   });
 }
 
+function renderArticle(title, paras){
+  $("#artTitle").textContent = title;
+  const art = $("#article");
+  art.innerHTML = "";
+  paras.forEach(p => {
+    const pel = document.createElement("p");
+    splitSentences(p).forEach(sent => {
+      const sEl = document.createElement("span");
+      sEl.className = "s"; sEl.dataset.sent = sent;
+      sEl.appendChild(wrapUnits(sent));
+      sEl.addEventListener("click", () => tapSentence(sEl));
+      pel.appendChild(sEl); pel.appendChild(document.createTextNode(" "));
+    });
+    art.appendChild(pel);
+  });
+  applyRuby(art);
+  art.querySelectorAll(".w").forEach(el => el.addEventListener("click", ev => { ev.stopPropagation(); tapWord(el); }));
+}
+
+function showFallback(url){
+  $("#artTitle").textContent = "記事";
+  const art = $("#article");
+  art.innerHTML = "";
+  const box = document.createElement("div");
+  box.className = "fallback";
+  const msg = document.createElement("p");
+  msg.textContent = "このページは自動で読み込めませんでした。CAPTCHA（画像認証）やログインが必要なページの可能性があります。";
+  box.appendChild(msg);
+  const row = document.createElement("div"); row.className = "row";
+  const origBtn = document.createElement("button"); origBtn.textContent = "元のページを開く";
+  origBtn.addEventListener("click", () => window.open(url, "_blank"));
+  const pasteBtn = document.createElement("button"); pasteBtn.className = "sub"; pasteBtn.textContent = "テキストを貼って読む";
+  pasteBtn.addEventListener("click", () => {
+    const d = $("#pasteDetails"); d.open = true;
+    d.scrollIntoView({behavior:"smooth"});
+    setTimeout(() => $("#pasteText").focus(), 400);
+  });
+  row.appendChild(origBtn); row.appendChild(pasteBtn);
+  box.appendChild(row);
+  const hint = document.createElement("p");
+  hint.className = "hint";
+  hint.textContent = "元のページで本文をコピーして「テキストを貼って読む」に貼ると、このアプリで読めます。PCのChromeなら、元のページでえごさ拡張を使う方法もあります。";
+  box.appendChild(hint);
+  art.appendChild(box);
+}
+
 async function openArticle(url){
   if(!url) return;
   $("#url").value = url;
@@ -192,29 +249,27 @@ async function openArticle(url){
   try{
     const r = await fetch("https://r.jina.ai/" + url);
     const text = await r.text();
-    const lines = text.split(/\n+/).map(s => s.trim()).filter(s => s.length > 40 && !s.startsWith("![") && !s.startsWith("["));
+    const head = text.slice(0, 2000);
+    const lines = text.split(/\n+/).map(s => s.trim()).filter(s => s.length > 40 && !s.startsWith("![") && !s.startsWith("[") && !s.startsWith("Warning:"));
     const titleLine = lines.find(s => s.startsWith("Title:")) || "";
-    $("#artTitle").textContent = titleLine ? titleLine.replace(/^Title:\s*/,"") : "記事";
     const paras = lines.filter(s => !s.startsWith("Title:") && !s.startsWith("URL Source:") && !s.startsWith("Markdown Content:")).slice(0, 60);
-    const art = $("#article");
-    art.innerHTML = "";
-    paras.forEach(p => {
-      const pel = document.createElement("p");
-      splitSentences(p).forEach(sent => {
-        const sEl = document.createElement("span");
-        sEl.className = "s"; sEl.dataset.sent = sent;
-        sEl.appendChild(wrapUnits(sent));
-        sEl.addEventListener("click", () => tapSentence(sEl));
-        pel.appendChild(sEl); pel.appendChild(document.createTextNode(" "));
-      });
-      art.appendChild(pel);
-    });
-    applyRuby(art);
-    art.querySelectorAll(".w").forEach(el => el.addEventListener("click", ev => { ev.stopPropagation(); tapWord(el); }));
+    if(/Warning:[^\n]*CAPTCHA/i.test(head) || paras.length === 0){ showFallback(url); return; }
+    renderArticle(titleLine ? titleLine.replace(/^Title:\s*/,"") : "記事", paras);
   }catch(e){
-    $("#artTitle").textContent = "記事";
-    $("#article").innerHTML = '<p class="hint">本文が取れませんでした。サイト側で読み取りを止めている場合があります。</p>';
+    showFallback(url);
   }
+}
+
+function openPastedText(){
+  const raw = $("#pasteText").value.trim();
+  if(!raw) return;
+  let paras = raw.split(/\n\s*\n/).map(s => s.replace(/\s*\n\s*/g, " ").trim()).filter(Boolean);
+  if(paras.length <= 1) paras = raw.split(/\n/).map(s => s.trim()).filter(Boolean);
+  paras = paras.slice(0, 60);
+  if(!paras.length) return;
+  const sec = $("#readerSec"); sec.hidden = false;
+  renderArticle("貼り付けたテキスト", paras);
+  sec.scrollIntoView({behavior:"smooth"});
 }
 
 function splitSentences(text){
@@ -315,6 +370,7 @@ $("#closeBar").addEventListener("click", () => $("#bar").classList.remove("show"
 $("#searchBtn").addEventListener("click", doSearch);
 $("#q").addEventListener("keydown", e => { if(e.key === "Enter") doSearch(); });
 $("#openBtn").addEventListener("click", () => openArticle($("#url").value.trim()));
+$("#pasteBtn").addEventListener("click", openPastedText);
 $("#workerUrl").value = store.worker;
 $("#saveWorker").addEventListener("click", () => { store.worker = $("#workerUrl").value.trim(); alert("保存しました"); });
 $("#clearDict").addEventListener("click", () => { if(confirm("貯まったふりがなを全部消しますか？")){ store.dict = {}; updateDictCount(); location.reload(); } });
