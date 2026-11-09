@@ -1,1 +1,1 @@
-{"content_scripts":[{"js":["content.js"],"matches":["http://*/*","https://*/*"],"run_at":"document_idle"}],"description":"開いている英語ページに、えごさの読み方（タップで訳・ふりがな）を重ねる拡張機能です。","manifest_version":3,"name":"えごさ拡張","permissions":["storage"],"version":"0.1.0"}
+{"content_scripts":[{"js":["content.js"],"matches":["http://*/*","https://*/*"],"run_at":"document_idle"}],"description":"開いている英語ページに、えごさの読み方（タップで訳・ふりがな）を重ねる拡張機能です。","manifest_version":3,"name":"えごさ拡張","permissions":["storage"],"version":"0.1.1"}

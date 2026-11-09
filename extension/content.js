@@ -8,7 +8,8 @@ let dict = {}, glossCache = {}, activated = false;
 let currentKey = "", currentGloss = "", currentIsUnit = false;
 
 async function translate(text){
-  const u = "https://api.mymemory.translated.net/get?q=" + encodeURIComponent(text) + "&langpair=en|ja";
+  const q = text.replace(/([A-Za-z])-(?=[A-Za-z])/g, "$1 ");
+  const u = "https://api.mymemory.translated.net/get?q=" + encodeURIComponent(q) + "&langpair=en|ja";
   const r = await fetch(u);
   const j = await r.json();
   return (j.responseData && j.responseData.translatedText) || "";
