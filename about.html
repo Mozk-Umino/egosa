@@ -80,7 +80,23 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <h2>取れないページについて</h2>
     <p>サイトによっては、CAPTCHA（画像認証）やログインが必要で、えごさが本文を取り込めないことがあります。その場合は、次の2つの方法があります。</p>
     <p>1つ目は、元のページで本文をコピーして、えごさの「テキストを貼って読む」に貼る方法です。貼った文にも、単語や句や文をタップして訳を見る読み方がそのまま付きます。</p>
-    <p>2つ目は、PCのChromeで元のページを開き、えごさ拡張（Chrome拡張）を使う方法です。自分で開けるページなら、CAPTCHAやログインの先にあるページでも、そのページに読み方を重ねられます。拡張はGitHubリポジトリの extension フォルダにあります。iPhoneでは拡張が使えないので、スマホでは1つ目の方法を使ってください。</p>
+    <p>2つ目は、PCのChromeで元のページを開き、えごさ拡張（Chrome拡張）を使う方法です。自分で開けるページなら、CAPTCHAやログインの先にあるページでも、そのページに読み方を重ねられます。拡張のダウンロードと入れ方は<a href="#ext">次の節</a>にあります。iPhoneでは拡張が使えないので、スマホでは1つ目の方法を使ってください。</p>
+  </section>
+
+  <section id="ext">
+    <h2>えごさ拡張を入れる（PCのChrome用）</h2>
+    <p>取り込めなかったページや、ログインしないと読めないページは、Chrome拡張でそのまま読めます。自分で開けるページなら、右下の「えごさ」ボタンを押すだけで、アプリと同じ読み方になります。</p>
+    <p><button id="ext-dl" type="button">えごさ拡張をダウンロード（ZIP）</button> <span id="ext-dl-msg" style="font-size:12px;color:#6b7280"></span></p>
+    <p>入れる手順</p>
+    <ol>
+      <li>上のボタンからZIPファイルをダウンロードして、解凍します</li>
+      <li>Chromeで <code>chrome://extensions</code> を開きます</li>
+      <li>右上の「デベロッパーモード」をオンにします</li>
+      <li>「パッケージ化されていない拡張機能を読み込む」を押し、解凍したフォルダを選びます</li>
+      <li>読みたいページを開いて、右下に出る「えごさ」ボタンを押します</li>
+    </ol>
+    <p>Chromeのストアでは配っていない、開発者向けの入れ方です。PCのChrome専用で、iPhoneでは使えません。</p>
+    <p>ZIPが使えない場合は、<a href="extension/manifest.json">manifest.json</a> と <a href="extension/content.js">content.js</a> の2つのファイルを同じフォルダに入れて、そのフォルダを読み込んでください。ソースは <a href="https://github.com/Mozk-Umino/egosa/tree/main/extension">GitHubの extension フォルダ</a> でも見られます。</p>
   </section>
   <section>
     <h2>設定について</h2>
@@ -101,5 +117,32 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </section>
 </main>
 <footer>えごさ ― えいごをさわる<br>作った人：もずく・らてっくす（<a href="https://mozk-umino.github.io/">活動まとめ</a>／<a href="https://x.com/100_99_1e12">X</a>）</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+document.getElementById('ext-dl').addEventListener('click', async () => {
+  const msg = document.getElementById('ext-dl-msg');
+  msg.textContent = '準備しています…';
+  try {
+    if (typeof JSZip === 'undefined') throw new Error('lib');
+    const zip = new JSZip();
+    const folder = zip.folder('egosa-extension');
+    for (const name of ['manifest.json', 'content.js', 'README.md']) {
+      const res = await fetch('extension/' + name);
+      if (!res.ok) throw new Error(name);
+      folder.file(name, await res.blob());
+    }
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'egosa-extension.zip';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    msg.textContent = 'ダウンロードしました。解凍して手順どおりに入れてください。';
+  } catch (e) {
+    msg.textContent = 'ZIPを作れませんでした。下の2つのファイルを直接保存してください。';
+  }
+});
+</script>
 </body>
 </html>
