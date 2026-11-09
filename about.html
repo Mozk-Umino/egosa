@@ -22,13 +22,28 @@
   a{ color:var(--teal); }
   code{ background:#f3f4f6; border-radius:4px; padding:1px 5px; font-size:13px; }
   footer{ font-size:11px; color:var(--sub); text-align:center; padding:8px 0 20px; }
+  .author{ display:flex; gap:14px; align-items:flex-start; }
+  .author img{ width:84px; height:84px; border-radius:50%; object-fit:cover; flex:none; }
+  .author h2{ margin:0 0 8px; font-size:16px; }
+  .author p{ margin:0 0 6px; }
 </style>
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-NZ78PH6R');</script>
+<!-- End Google Tag Manager -->
 </head>
 <body>
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NZ78PH6R"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
 <header>
   <h1>考え方と使い方</h1>
   <p>えごさの設計思想と、基本的な使い方</p>
-  <nav class="top"><a href="index.html">えごさ本体</a><a href="about.html">考え方と使い方</a><a href="skill.html">えごさSkill（AI用）</a></nav>
+  <nav class="top"><a href="index.html">えごさ本体</a><a href="about.html">考え方と使い方</a><a href="skill.html">えごさSkill（AI用）</a><a href="https://mozk-umino.github.io/">活動まとめ</a></nav>
 </header>
 <main>
 
@@ -72,7 +87,19 @@
     <p>検索結果をえごさの中で一覧表示するには、検索中継（Cloudflare Worker）の設定が別途必要です。設定の欄から中継URLを保存してください。中継がなくても、外部の検索を開いてURLを貼る形で使えます。</p>
   </section>
 
+
+  <section>
+    <div class="author">
+      <img src="https://mozk-umino.github.io/icon.jpg" alt="もずく・らてっくすのアイコン">
+      <div>
+        <h2>作った人：<a href="https://mozk-umino.github.io/">もずく・らてっくす</a></h2>
+        <p>本業はエンジニア的なことをしています。</p>
+        <p>えごさは、英語で探して、英語で読むための道具です。他にもAIと一緒に作ったツールや記事を、気まぐれに公開しています。</p>
+        <p>X：<a href="https://x.com/100_99_1e12">@100_99_1e12</a></p>
+      </div>
+    </div>
+  </section>
 </main>
-<footer>えごさ ― えいごをさわる</footer>
+<footer>えごさ ― えいごをさわる<br>作った人：もずく・らてっくす（<a href="https://mozk-umino.github.io/">活動まとめ</a>／<a href="https://x.com/100_99_1e12">X</a>）</footer>
 </body>
 </html>
