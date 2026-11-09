@@ -7,40 +7,43 @@
 <meta name="description" content="日本語で探して、英語の記事を読むための小さな道具。単語をタップすると訳が出て、ふりがなが貯まっていきます。">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f766e">
+<script>(function(){var t="light";try{t=localStorage.getItem("egosa_theme")||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");}catch(e){}document.documentElement.dataset.theme=t;})();</script>
 <style>
-  :root{ --teal:#0f766e; --ink:#1f2937; --sub:#6b7280; --line:#e5e7eb; --bg:#fafaf9; --card:#fff; }
+  :root{ --teal:#0f766e; --head:#0f766e; --ink:#1f2937; --sub:#6b7280; --line:#e5e7eb; --bg:#fafaf9; --card:#fff; --sub-bg:#e7e5e4; --tint-bg:#f0fdfa; --tint-line:#ccfbf1; --warn-bg:#fffbeb; --warn-line:#fde68a; --code-bg:#f3f4f6; --active:#ccfbf1; color-scheme:light; }
+  :root[data-theme="dark"]{ --teal:#2dd4bf; --ink:#e5e7eb; --sub:#9ca3af; --line:#374151; --bg:#111827; --card:#1f2937; --sub-bg:#374151; --tint-bg:#0b3330; --tint-line:#115e59; --warn-bg:#3a2a04; --warn-line:#92400e; --code-bg:#374151; --active:#134e4a; color-scheme:dark; }
   *{ box-sizing:border-box; }
   body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif; color:var(--ink); background:var(--bg); }
-  header{ background:var(--teal); color:#fff; padding:14px 16px 12px; }
+  header{ background:var(--head); color:#fff; padding:14px 16px 12px; }
   header h1{ margin:0; font-size:20px; letter-spacing:.02em; }
   header p{ margin:4px 0 0; font-size:12px; opacity:.9; }
   main{ max-width:720px; margin:0 auto; padding:14px 14px 96px; }
   section{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:14px; }
   h2{ font-size:15px; margin:0 0 10px; }
   .row{ display:flex; gap:8px; }
-  input[type=text],input[type=url]{ flex:1; font-size:16px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; min-width:0; }
-  button{ font-size:15px; padding:10px 14px; border:0; border-radius:10px; background:var(--teal); color:#fff; cursor:pointer; white-space:nowrap; }
-  button.sub{ background:#e7e5e4; color:var(--ink); }
+  input[type=text],input[type=url]{ flex:1; font-size:16px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; min-width:0; background:var(--card); color:var(--ink); }
+  button{ font-size:15px; padding:10px 14px; border:0; border-radius:10px; background:var(--head); color:#fff; cursor:pointer; white-space:nowrap; }
+  button.sub{ background:var(--sub-bg); color:var(--ink); }
   button:disabled{ opacity:.5; }
   .hint{ font-size:12px; color:var(--sub); margin-top:8px; line-height:1.6; }
-  .en{ font-size:14px; background:#f0fdfa; border:1px solid #ccfbf1; border-radius:8px; padding:8px 10px; margin-top:10px; word-break:break-word; }
+  .en{ font-size:14px; background:var(--tint-bg); border:1px solid var(--tint-line); border-radius:8px; padding:8px 10px; margin-top:10px; word-break:break-word; }
   .results a{ display:block; padding:10px 4px; border-bottom:1px solid var(--line); color:var(--ink); text-decoration:none; }
   .results a b{ color:var(--teal); font-weight:600; }
   .results small{ color:var(--sub); display:block; margin-top:2px; line-height:1.5; }
   #article{ line-height:2.1; font-size:17px; }
   #article p{ margin:0 0 1em; }
   #article rt{ font-size:9px; color:var(--teal); }
-  textarea{ width:100%; font-size:16px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; font-family:inherit; }
-  .fallback{ background:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:12px; }
+  textarea{ width:100%; font-size:16px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; font-family:inherit; background:var(--card); color:var(--ink); }
+  .fallback{ background:var(--warn-bg); border:1px solid var(--warn-line); border-radius:10px; padding:12px; }
   .fallback p{ margin:0 0 10px; line-height:1.7; font-size:15px; }
   .w{ cursor:pointer; border-radius:3px; }
-  .w:active{ background:#ccfbf1; }
+  .w:active{ background:var(--active); }
   .ph{ border-bottom:2px dotted var(--teal); }
   .s{ cursor:pointer; }
   nav.top{ margin-top:8px; font-size:13px; }
   nav.top a{ color:#fff; opacity:.95; margin-right:14px; }
   nav.top{ display:flex; flex-wrap:wrap; align-items:center; }
-  nav.top a.hub-link{ margin-left:auto; margin-right:0; padding-left:12px; border-left:1px solid rgba(255,255,255,.45); opacity:.9; }
+  nav.top .theme-btn{ margin-left:auto; margin-right:0; background:transparent; border:1px solid rgba(255,255,255,.45); color:#fff; border-radius:999px; padding:2px 10px; font-size:13px; font-family:inherit; cursor:pointer; }
+  nav.top a.hub-link{ margin-left:12px; margin-right:0; padding-left:12px; border-left:1px solid rgba(255,255,255,.45); opacity:.9; }
   nav.top span.current{ margin-right:14px; font-weight:700; }
   #bar{ position:fixed; left:0; right:0; bottom:0; background:#111827; color:#fff; padding:12px 16px calc(12px + env(safe-area-inset-bottom)); transform:translateY(110%); transition:transform .18s; }
   #bar.show{ transform:none; }
@@ -67,7 +70,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <header>
   <h1>えごさ</h1>
   <p>えいごをさわる ― 日本語で探して、英語を読む</p>
-  <nav class="top"><span class="current">えごさ本体（Webアプリ）</span><a href="skill.html">えごさSkill（AI用）</a><a href="about.html#ext">えごさ拡張（PC用）</a><a href="about.html">考え方と使い方（About）</a><a class="hub-link" href="https://mozk-umino.github.io/">もずくの活動まとめ</a></nav>
+  <nav class="top"><span class="current">えごさ本体（Webアプリ）</span><a href="skill.html">えごさSkill（AI用）</a><a href="about.html#ext">えごさ拡張（PC用）</a><a href="about.html">考え方と使い方（About）</a><button type="button" class="theme-btn" id="themeBtn" aria-label="表示テーマを切り替える">🌙</button><a class="hub-link" href="https://mozk-umino.github.io/">もずくの活動まとめ</a></nav>
 </header>
 <main>
   <section>
@@ -117,7 +120,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </details>
   </section>
   <footer>
-    えごさ v0.15 ― 検索結果の表示には Brave Search を使う場合があります（中継設定時）。<br>
+    えごさ v0.16 ― 検索結果の表示には Brave Search を使う場合があります（中継設定時）。<br>
     訳の取得には MyMemory の無料翻訳を使っています。
   <br>作った人：もずく・らてっくす（<a class="hub-link" href="https://mozk-umino.github.io/">もずくの活動まとめ</a>／<a href="https://x.com/100_99_1e12">X</a>）<br><a href="about.html#ext">Chrome拡張（PC用）のダウンロードと入れ方</a></footer>
 </main>
@@ -434,6 +437,25 @@ $("#saveWorker").addEventListener("click", () => { store.worker = $("#workerUrl"
 $("#clearDict").addEventListener("click", () => { if(confirm("貯まったふりがなを全部消しますか？")){ store.dict = {}; updateDictCount(); location.reload(); } });
 updateDictCount();
 if("serviceWorker" in navigator){ navigator.serviceWorker.register("sw.js").catch(()=>{}); }
+</script>
+<script>
+(function(){
+  var b = document.getElementById("themeBtn");
+  if(!b) return;
+  function sync(){
+    var dark = document.documentElement.dataset.theme === "dark";
+    b.textContent = dark ? "\u2600\uFE0F" : "\uD83C\uDF19";
+    var m = document.querySelector('meta[name="theme-color"]');
+    if(m) m.setAttribute("content", dark ? "#111827" : "#0f766e");
+  }
+  sync();
+  b.addEventListener("click", function(){
+    var t = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+    document.documentElement.dataset.theme = t;
+    try{ localStorage.setItem("egosa_theme", t); }catch(e){}
+    sync();
+  });
+})();
 </script>
 </body>
 </html>

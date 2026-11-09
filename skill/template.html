@@ -5,23 +5,24 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>{{TITLE}} ― Egosa format</title>
 <style>
-  :root{ --teal:#0f766e; --ink:#1f2937; --sub:#6b7280; --line:#e5e7eb; --bg:#fafaf9; --card:#fff; }
+  :root{ --teal:#0f766e; --head:#0f766e; --ink:#1f2937; --sub:#6b7280; --line:#e5e7eb; --bg:#fafaf9; --card:#fff; --tint-bg:#f0fdfa; --tint-line:#ccfbf1; --active:#ccfbf1; --quote-bg:#f8fafc; }
+  @media (prefers-color-scheme: dark){ :root{ --teal:#2dd4bf; --ink:#e5e7eb; --sub:#9ca3af; --line:#374151; --bg:#111827; --card:#1f2937; --tint-bg:#0b3330; --tint-line:#115e59; --active:#134e4a; --quote-bg:#1f2937; color-scheme:dark; } }
   *{ box-sizing:border-box; }
   body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif; color:var(--ink); background:var(--bg); }
-  header{ background:var(--teal); color:#fff; padding:14px 16px 12px; }
+  header{ background:var(--head); color:#fff; padding:14px 16px 12px; }
   header h1{ margin:0; font-size:18px; }
   header p{ margin:4px 0 0; font-size:12px; opacity:.9; }
   main{ max-width:720px; margin:0 auto; padding:14px 14px 96px; }
   section{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:14px; }
   h2{ font-size:15px; margin:0 0 10px; }
-  .conclusion{ background:#f0fdfa; border:1px solid #ccfbf1; border-radius:10px; padding:12px; line-height:2.1; }
+  .conclusion{ background:var(--tint-bg); border:1px solid var(--tint-line); border-radius:10px; padding:12px; line-height:2.1; }
   .body{ line-height:2.1; font-size:16px; }
   .body rt{ font-size:9px; color:var(--teal); }
   .w{ cursor:pointer; border-radius:3px; }
-  .w:active{ background:#ccfbf1; }
+  .w:active{ background:var(--active); }
   .ph{ border-bottom:2px dotted var(--teal); }
   .s{ cursor:pointer; }
-  blockquote{ margin:0 0 12px; padding:10px 12px; border-left:4px solid var(--teal); background:#f8fafc; line-height:2.1; }
+  blockquote{ margin:0 0 12px; padding:10px 12px; border-left:4px solid var(--teal); background:var(--quote-bg); line-height:2.1; }
   .src{ font-size:13px; line-height:1.9; }
   .src a{ color:var(--teal); word-break:break-all; }
   #bar{ position:fixed; left:0; right:0; bottom:0; background:#111827; color:#fff; padding:12px 16px calc(12px + env(safe-area-inset-bottom)); transform:translateY(110%); transition:transform .18s; cursor:pointer; }

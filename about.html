@@ -2,19 +2,23 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
+<meta name="theme-color" content="#0f766e">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>考え方と使い方 ― えごさ</title>
+<script>(function(){var t="light";try{t=localStorage.getItem("egosa_theme")||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");}catch(e){}document.documentElement.dataset.theme=t;})();</script>
 <style>
-  :root{ --teal:#0f766e; --ink:#1f2937; --sub:#6b7280; --line:#e5e7eb; --bg:#fafaf9; --card:#fff; }
+  :root{ --teal:#0f766e; --head:#0f766e; --ink:#1f2937; --sub:#6b7280; --line:#e5e7eb; --bg:#fafaf9; --card:#fff; --sub-bg:#e7e5e4; --tint-bg:#f0fdfa; --tint-line:#ccfbf1; --warn-bg:#fffbeb; --warn-line:#fde68a; --code-bg:#f3f4f6; --active:#ccfbf1; color-scheme:light; }
+  :root[data-theme="dark"]{ --teal:#2dd4bf; --ink:#e5e7eb; --sub:#9ca3af; --line:#374151; --bg:#111827; --card:#1f2937; --sub-bg:#374151; --tint-bg:#0b3330; --tint-line:#115e59; --warn-bg:#3a2a04; --warn-line:#92400e; --code-bg:#374151; --active:#134e4a; color-scheme:dark; }
   *{ box-sizing:border-box; }
   body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif; color:var(--ink); background:var(--bg); }
-  header{ background:var(--teal); color:#fff; padding:14px 16px 12px; }
+  header{ background:var(--head); color:#fff; padding:14px 16px 12px; }
   header h1{ margin:0; font-size:20px; }
   header p{ margin:4px 0 0; font-size:12px; opacity:.9; }
   nav.top{ margin-top:8px; font-size:13px; }
   nav.top a{ color:#fff; opacity:.95; margin-right:14px; }
   nav.top{ display:flex; flex-wrap:wrap; align-items:center; }
-  nav.top a.hub-link{ margin-left:auto; margin-right:0; padding-left:12px; border-left:1px solid rgba(255,255,255,.45); opacity:.9; }
+  nav.top .theme-btn{ margin-left:auto; margin-right:0; background:transparent; border:1px solid rgba(255,255,255,.45); color:#fff; border-radius:999px; padding:2px 10px; font-size:13px; font-family:inherit; cursor:pointer; }
+  nav.top a.hub-link{ margin-left:12px; margin-right:0; padding-left:12px; border-left:1px solid rgba(255,255,255,.45); opacity:.9; }
   nav.top span.current{ margin-right:14px; font-weight:700; }
   main{ max-width:720px; margin:0 auto; padding:14px 14px 48px; }
   section{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:14px; }
@@ -23,7 +27,7 @@
   p{ margin:0 0 10px; }
   ol, ul{ margin:0 0 10px; padding-left:22px; }
   a{ color:var(--teal); }
-  code{ background:#f3f4f6; border-radius:4px; padding:1px 5px; font-size:13px; }
+  code{ background:var(--code-bg); border-radius:4px; padding:1px 5px; font-size:13px; }
   footer{ font-size:11px; color:var(--sub); text-align:center; padding:8px 0 20px; }
   .author{ display:flex; gap:14px; align-items:flex-start; }
   .author img{ width:84px; height:84px; border-radius:50%; object-fit:cover; flex:none; }
@@ -46,7 +50,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <header>
   <h1>考え方と使い方</h1>
   <p>えごさの設計思想と、基本的な使い方</p>
-  <nav class="top"><a href="index.html">えごさ本体（Webアプリ）</a><a href="skill.html">えごさSkill（AI用）</a><a href="about.html#ext">えごさ拡張（PC用）</a><span class="current">考え方と使い方（About）</span><a class="hub-link" href="https://mozk-umino.github.io/">もずくの活動まとめ</a></nav>
+  <nav class="top"><a href="index.html">えごさ本体（Webアプリ）</a><a href="skill.html">えごさSkill（AI用）</a><a href="about.html#ext">えごさ拡張（PC用）</a><span class="current">考え方と使い方（About）</span><button type="button" class="theme-btn" id="themeBtn" aria-label="表示テーマを切り替える">🌙</button><a class="hub-link" href="https://mozk-umino.github.io/">もずくの活動まとめ</a></nav>
 </header>
 <main>
 
@@ -147,6 +151,25 @@ document.getElementById('ext-dl').addEventListener('click', async () => {
     msg.textContent = 'ZIPを作れませんでした。下の2つのファイルを直接保存してください。';
   }
 });
+</script>
+<script>
+(function(){
+  var b = document.getElementById("themeBtn");
+  if(!b) return;
+  function sync(){
+    var dark = document.documentElement.dataset.theme === "dark";
+    b.textContent = dark ? "\u2600\uFE0F" : "\uD83C\uDF19";
+    var m = document.querySelector('meta[name="theme-color"]');
+    if(m) m.setAttribute("content", dark ? "#111827" : "#0f766e");
+  }
+  sync();
+  b.addEventListener("click", function(){
+    var t = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+    document.documentElement.dataset.theme = t;
+    try{ localStorage.setItem("egosa_theme", t); }catch(e){}
+    sync();
+  });
+})();
 </script>
 </body>
 </html>

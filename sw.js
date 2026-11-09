@@ -1,6 +1,6 @@
 // えごさ service worker: アプリ本体だけをキャッシュする（記事や検索結果はキャッシュしない）
 // ページ（HTML）はネットワーク優先。古いキャッシュが混ざって画面の版がずれるのを防ぐ
-const CACHE = "egosa-v0-15";
+const CACHE = "egosa-v0-16";
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(["./", "./index.html", "./about.html", "./skill.html", "./manifest.json"])));
   self.skipWaiting();
