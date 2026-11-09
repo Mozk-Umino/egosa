@@ -60,7 +60,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <section>
     <h2>入手と導入</h2>
     <p>GitHubのegosaリポジトリにある <a href="https://github.com/Mozk-Umino/egosa/tree/main/skill">skillフォルダ</a> に、<code>SKILL.md</code> と <code>template.html</code> の2ファイルと、出力の見本 <code>sample-wordwise.html</code> が入っています。見本は、生成されるHTMLがどんな形になるかの参考です。</p>
-    <p>導入は3手順です。</p>
+    <p>AIに頼んで入れるのが一番簡単です。使っているAIに、下の文をそのまま渡してください。AIがファイルを取りに行って、置き場まで用意します。</p>
+    <div style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:8px;padding:10px 12px;margin:0 0 10px">
+      <p id="ai-install-text" style="margin:0 0 8px;font-size:14px;line-height:1.8">えごさSkillを入れてください。次の2ファイルを取得して、あなたのSkill置き場に egosa-research という名前のフォルダを作り、その中に入れてください。見本は参考用なので、入れなくても動きます。<br>https://mozk-umino.github.io/egosa/skill/SKILL.md<br>https://mozk-umino.github.io/egosa/skill/template.html</p>
+      <button id="ai-install-copy" type="button">この文をコピーする</button>
+      <span id="ai-install-msg" style="font-size:12px;color:#6b7280"></span>
+    </div>
+    <p>手で入れる場合は、今までどおり3手順です。</p>
     <ol>
       <li><code>SKILL.md</code> と <code>template.html</code> をダウンロードします（見本は参考用なので、入れなくても動きます）。</li>
       <li>使っているAIツールのSkill置き場に、<code>egosa-research</code> という名前のフォルダを作り、2ファイルを入れます。置き場はツールごとに違います。Claude Codeでは <code>~/.claude/skills/</code> が目安です。</li>
@@ -76,5 +82,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 </main>
 <footer>えごさ ― えいごをさわる<br>作った人：もずく・らてっくす（<a class="hub-link" href="https://mozk-umino.github.io/">もずくの活動まとめ</a>／<a href="https://x.com/100_99_1e12">X</a>）</footer>
+
+<script>
+document.getElementById('ai-install-copy').addEventListener('click', async () => {
+  const msg = document.getElementById('ai-install-msg');
+  const text = document.getElementById('ai-install-text').innerText;
+  try { await navigator.clipboard.writeText(text); msg.textContent = 'コピーしました。'; }
+  catch (e) { msg.textContent = 'コピーできませんでした。文を選んでコピーしてください。'; }
+});
+</script>
 </body>
 </html>
