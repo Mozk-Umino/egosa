@@ -1,5 +1,5 @@
 // えごさ service worker: アプリ本体だけをキャッシュする（記事や検索結果はキャッシュしない）
-const CACHE = "egosa-v0-5";
+const CACHE = "egosa-v0-6";
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(["./", "./index.html", "./about.html", "./skill.html", "./manifest.json"])));
   self.skipWaiting();
