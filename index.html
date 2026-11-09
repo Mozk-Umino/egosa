@@ -67,7 +67,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <header>
   <h1>えごさ</h1>
   <p>えいごをさわる ― 日本語で探して、英語を読む</p>
-  <nav class="top"><span class="current">えごさ本体</span><a href="about.html">考え方と使い方</a><a href="skill.html">えごさSkill（AI用）</a><a class="hub-link" href="https://mozk-umino.github.io/">もずくの活動まとめ</a></nav>
+  <nav class="top"><span class="current">えごさ本体（Webアプリ）</span><a href="skill.html">えごさSkill（AI用）</a><a href="about.html#ext">えごさ拡張（PC用）</a><a href="about.html">考え方と使い方（About）</a><a class="hub-link" href="https://mozk-umino.github.io/">もずくの活動まとめ</a></nav>
 </header>
 <main>
   <section>
@@ -117,7 +117,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </details>
   </section>
   <footer>
-    えごさ v0.12 ― 検索結果の表示には Brave Search を使う場合があります（中継設定時）。<br>
+    えごさ v0.13 ― 検索結果の表示には Brave Search を使う場合があります（中継設定時）。<br>
     訳の取得には MyMemory の無料翻訳を使っています。
   <br>作った人：もずく・らてっくす（<a class="hub-link" href="https://mozk-umino.github.io/">もずくの活動まとめ</a>／<a href="https://x.com/100_99_1e12">X</a>）<br><a href="about.html#ext">Chrome拡張（PC用）のダウンロードと入れ方</a></footer>
 </main>
@@ -279,6 +279,10 @@ function showFallback(url){
   const hint = document.createElement("p");
   hint.className = "hint";
   hint.textContent = "元のページで本文をコピーして「テキストを貼って読む」に貼ると、このアプリで読めます。PCのChromeなら、元のページでえごさ拡張を使う方法もあります。";
+  const extLink = document.createElement("a");
+  extLink.href = "about.html#ext";
+  extLink.textContent = "ダウンロードと入れ方";
+  hint.appendChild(extLink);
   box.appendChild(hint);
   art.appendChild(box);
 }
