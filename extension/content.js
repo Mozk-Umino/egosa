@@ -71,7 +71,29 @@ function isEnglishPage(){
   if(latin + jp < 40) return false;
   return latin > jp;
 }
-if(isEnglishPage()) document.documentElement.appendChild(launch);
+let launchShown = false;
+let launchObserver = null;
+let lastSampleLen = -1;
+function tryShowLaunch(){
+  if(launchShown) return;
+  if(!isEnglishPage()) return;
+  launchShown = true;
+  document.documentElement.appendChild(launch);
+  if(launchObserver){ launchObserver.disconnect(); launchObserver = null; }
+}
+tryShowLaunch();
+if(!launchShown && (document.documentElement.getAttribute("lang") || "").toLowerCase().indexOf("ja") !== 0){
+  // 本文が後から描画されるページ（記事ページ等）では、読み込み直後の判定材料が足りない。
+  // 少しの間だけ本文の変化を待って、材料が増えたら判定し直す
+  launchObserver = new MutationObserver(() => {
+    const len = document.body ? (document.body.innerText || "").length : 0;
+    if(Math.abs(len - lastSampleLen) < 200) return;
+    lastSampleLen = len;
+    tryShowLaunch();
+  });
+  launchObserver.observe(document.documentElement, {childList: true, subtree: true});
+  setTimeout(() => { tryShowLaunch(); if(launchObserver){ launchObserver.disconnect(); launchObserver = null; } }, 8000);
+}
 
 const bar = document.createElement("div");
 bar.setAttribute("data-egosa-ui","1");
