@@ -6,6 +6,7 @@ const PHRASES = ["look forward to","take into account","in other words","on the 
 const SKIP_TAGS = new Set(["SCRIPT","STYLE","NOSCRIPT","TEXTAREA","INPUT","SELECT","OPTION","IFRAME","SVG","CANVAS"]);
 let dict = {}, glossCache = {}, activated = false;
 let currentKey = "", currentGloss = "", currentIsUnit = false;
+let currentSentence = "";
 
 function pickTranslation(j, src, wantJa){
   const norm = s => (s || "").trim().toLowerCase().replace(/[.\u3002!?,;:]+$/,"");
@@ -84,15 +85,19 @@ barActs.style.cssText = "margin-top:8px;display:flex;gap:8px";
 const saveBtn = document.createElement("button");
 saveBtn.textContent = "ふりがなに貯める";
 saveBtn.style.cssText = "background:#0f766e;color:#fff;border:0;border-radius:8px;padding:7px 12px;font-size:13px;cursor:pointer";
+const sentBtn = document.createElement("button");
+sentBtn.textContent = "文の訳";
+sentBtn.style.cssText = "background:#e7e5e4;color:#1f2937;border:0;border-radius:8px;padding:7px 12px;font-size:13px;cursor:pointer;display:none";
 const closeBtn = document.createElement("button");
 closeBtn.textContent = "閉じる";
 closeBtn.style.cssText = "background:#e7e5e4;color:#1f2937;border:0;border-radius:8px;padding:7px 12px;font-size:13px;cursor:pointer";
-barActs.appendChild(saveBtn); barActs.appendChild(closeBtn);
+barActs.appendChild(saveBtn); barActs.appendChild(sentBtn); barActs.appendChild(closeBtn);
 bar.appendChild(barWord); bar.appendChild(barGloss); bar.appendChild(barActs);
 document.documentElement.appendChild(bar);
 
 function showBar(){ bar.style.transform = "none"; }
 function hideBar(){ bar.style.transform = "translateY(110%)"; }
+sentBtn.addEventListener("click", () => { if(currentSentence) showSentence(currentSentence); });
 closeBtn.addEventListener("click", hideBar);
 saveBtn.addEventListener("click", () => {
   if(currentKey && currentGloss){
@@ -174,6 +179,9 @@ function applyRubyAll(){ document.querySelectorAll(".egosa-w").forEach(applyRuby
 async function tapUnit(el, isPhrase){
   const key = el.dataset.w;
   currentKey = key; currentIsUnit = true;
+  const sEl = el.closest(".egosa-s");
+  currentSentence = sEl ? (sEl.dataset.sent || "") : "";
+  sentBtn.style.display = currentSentence ? "" : "none";
   barWord.textContent = el.textContent.replace(/\s+/g, " ").trim();
   saveBtn.style.display = "";
   showBar();
@@ -187,7 +195,11 @@ async function tapUnit(el, isPhrase){
 async function tapSentence(el){
   const sent = el.dataset.sent || "";
   if(!sent) return;
+  showSentence(sent);
+}
+async function showSentence(sent){
   currentKey = ""; currentIsUnit = false;
+  sentBtn.style.display = "none";
   barWord.textContent = sent.length > 42 ? sent.slice(0, 42) + "…" : sent;
   saveBtn.style.display = "none";
   showBar();

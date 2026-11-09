@@ -79,7 +79,16 @@ const PHRASES = {{PHRASES_JSON}};
 const RUBY = new Set({{RUBY_JSON}});
 const bar = document.getElementById("bar"), barWord = document.getElementById("barWord"), barGloss = document.getElementById("barGloss");
 let barMode = "";
-function showBar(word, gloss, mode){ barWord.textContent = word; barGloss.textContent = gloss; barMode = mode || ""; bar.classList.add("show"); }
+let lastWordEl = null;
+const sentBtn = document.createElement("button");
+sentBtn.textContent = "文の訳";
+sentBtn.style.cssText = "margin-left:10px;background:#0f766e;color:#fff;border:0;border-radius:8px;padding:5px 10px;font-size:13px;cursor:pointer;display:none";
+bar.appendChild(sentBtn);
+sentBtn.addEventListener("click", function(){
+  const sEl = lastWordEl && lastWordEl.closest(".s");
+  if(sEl) showBar("Sentence", sEl.dataset.jp || "", "sent");
+});
+function showBar(word, gloss, mode){ barWord.textContent = word; barGloss.textContent = gloss; barMode = mode || ""; sentBtn.style.display = (barMode === "dict" && lastWordEl && lastWordEl.closest(".s")) ? "" : "none"; bar.classList.add("show"); }
 function makeSpan(text, gloss, isPhrase, withRuby){
   const span = document.createElement("span");
   span.className = isPhrase ? "w ph" : "w"; span.dataset.g = gloss;
@@ -88,7 +97,7 @@ function makeSpan(text, gloss, isPhrase, withRuby){
     const rt = document.createElement("rt"); rt.textContent = gloss; ruby.appendChild(rt);
     span.appendChild(ruby);
   } else { span.textContent = text; }
-  span.addEventListener("click", function(e){ e.stopPropagation(); showBar(text, gloss, "dict"); });
+  span.addEventListener("click", function(e){ e.stopPropagation(); lastWordEl = span; showBar(text, gloss, "dict"); });
   return span;
 }
 function wrapText(text){

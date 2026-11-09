@@ -117,7 +117,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </details>
   </section>
   <footer>
-    えごさ v0.13 ― 検索結果の表示には Brave Search を使う場合があります（中継設定時）。<br>
+    えごさ v0.14 ― 検索結果の表示には Brave Search を使う場合があります（中継設定時）。<br>
     訳の取得には MyMemory の無料翻訳を使っています。
   <br>作った人：もずく・らてっくす（<a class="hub-link" href="https://mozk-umino.github.io/">もずくの活動まとめ</a>／<a href="https://x.com/100_99_1e12">X</a>）<br><a href="about.html#ext">Chrome拡張（PC用）のダウンロードと入れ方</a></footer>
 </main>
@@ -126,6 +126,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <span class="word" id="barWord"></span><span class="gloss" id="barGloss"></span>
   <div class="acts">
     <button id="addRuby">ふりがなに貯める</button>
+    <button id="sentBtn" class="sub">文の訳</button>
     <button id="closeBar" class="sub">閉じる</button>
   </div>
 </div>
@@ -139,7 +140,7 @@ const store = {
   get worker(){ return localStorage.getItem("egosa_worker")||""; },
   set worker(u){ localStorage.setItem("egosa_worker", u); }
 };
-let currentWord = "", currentGloss = "", currentMode = "";
+let currentWord = "", currentGloss = "", currentMode = "", currentSentence = "";
 const glossCache = {};
 const PHRASES = ["look forward to","take into account","in other words","on the other hand","as a result","in addition","in particular","in general","for example","according to","in order to","because of","instead of","rather than","as well as","as long as","as soon as","even though","whether or not","not only","first of all","in the end","in short","to begin with","in conclusion","little by little","step by step","one by one","when it comes to","in terms of","come up with","get rid of","find out","look into","point out","bring up","carry out","end up","run into","deal with","focus on","depend on","based on","lead to","result in","consist of","check out","look up","give up","take up","put off","call off","break down","figure out","work out","make sure","turn on","turn off","set up","such as","due to","at least","at most","more than","less than","a lot of","kind of","sort of","used to","be able to","have to","at all","by the way","so far","even if","but also","each other","one another","no longer","on average","per day","go on","keep on","come back"].sort((a,b)=>b.length-a.length);
 
@@ -354,10 +355,14 @@ function wrapUnits(text){
 async function tapSentence(el){
   const sent = el.dataset.sent || "";
   if(!sent) return;
+  showSentenceText(sent);
+}
+async function showSentenceText(sent){
   currentMode = "sentence"; currentWord = "";
   $("#barWord").textContent = sent.length > 42 ? sent.slice(0, 42) + "…" : sent;
   $("#barGloss").textContent = "翻訳中…";
   $("#addRuby").style.display = "none";
+  $("#sentBtn").style.display = "none";
   $("#bar").classList.add("show");
   let t = glossCache["s:" + sent];
   if(!t){ try{ t = await translate(sent, "en", "ja"); }catch(e){ t = ""; } if(t) glossCache["s:" + sent] = t; }
@@ -367,6 +372,9 @@ async function tapSentence(el){
 async function tapWord(el){
   const w = el.dataset.w;
   currentWord = w; currentMode = el.classList.contains("ph") ? "phrase" : "word";
+  const sEl = el.closest(".s");
+  currentSentence = sEl ? (sEl.dataset.sent || "") : "";
+  $("#sentBtn").style.display = currentSentence ? "" : "none";
   $("#barWord").textContent = el.textContent.replace(/\s+/g, " ").trim();
   $("#addRuby").style.display = "";
   const dict = store.dict;
@@ -390,6 +398,7 @@ function checkSelection(){
     $("#barWord").textContent = t.length > 42 ? t.slice(0, 42) + "…" : t;
     $("#barGloss").textContent = "バーをタップすると、この範囲を翻訳します";
     $("#addRuby").style.display = "none";
+    $("#sentBtn").style.display = "none";
     $("#bar").classList.add("show");
   }
 }
@@ -414,6 +423,7 @@ $("#addRuby").addEventListener("click", () => {
   }
   $("#bar").classList.remove("show");
 });
+$("#sentBtn").addEventListener("click", () => { if(currentSentence) showSentenceText(currentSentence); });
 $("#closeBar").addEventListener("click", () => $("#bar").classList.remove("show"));
 $("#searchBtn").addEventListener("click", doSearch);
 $("#q").addEventListener("keydown", e => { if(e.key === "Enter") doSearch(); });
