@@ -7,12 +7,41 @@ const SKIP_TAGS = new Set(["SCRIPT","STYLE","NOSCRIPT","TEXTAREA","INPUT","SELEC
 let dict = {}, glossCache = {}, activated = false;
 let currentKey = "", currentGloss = "", currentIsUnit = false;
 
+function pickTranslation(j, src, wantJa){
+  const norm = s => (s || "").trim().toLowerCase().replace(/[.\u3002!?,;:]+$/,"");
+  const isBad = s => { const t = (s || "").trim(); return !t || t === "\uFF08\u7A7A\u6B04\uFF09" || norm(t) === norm(src); };
+  const top = j.responseData && j.responseData.translatedText;
+  if(!isBad(top)) return top;
+  let ms = (j.matches || []).filter(m => m.translation && !isBad(m.translation));
+  if(wantJa) ms = ms.filter(m => /[\u3040-\u30FF\u4E00-\u9FFF]/.test(m.translation));
+  ms.sort((a,b) => ((b.match||0) - (a.match||0)) || ((b.quality||0) - (a.quality||0)));
+  return ms.length ? ms[0].translation : "";
+}
+
+async function jishoGloss(word){
+  try{
+    const r = await fetch("https://jisho.org/api/v1/search/words?keyword=" + encodeURIComponent(word));
+    const j = await r.json();
+    const w = word.toLowerCase();
+    for(const e of (j.data || [])){
+      const defs = [];
+      (e.senses || []).forEach(s => (s.english_definitions || []).forEach(d => defs.push(d.toLowerCase())));
+      if(!defs.some(d => d.split(/[^a-z]+/).includes(w))) continue;
+      const jp = (e.japanese || [])[0] || {};
+      if(jp.word || jp.reading) return jp.word || jp.reading;
+    }
+  }catch(_){ }
+  return "";
+}
+
 async function translate(text){
   const q = text.replace(/([A-Za-z])-(?=[A-Za-z])/g, "$1 ");
   const u = "https://api.mymemory.translated.net/get?q=" + encodeURIComponent(q) + "&langpair=en|ja";
   const r = await fetch(u);
   const j = await r.json();
-  return (j.responseData && j.responseData.translatedText) || "";
+  let out = pickTranslation(j, q, true);
+  if(!out && !q.includes(" ")) out = await jishoGloss(q);
+  return out;
 }
 
 /* ---------- UI ---------- */

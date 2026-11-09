@@ -117,7 +117,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </details>
   </section>
   <footer>
-    えごさ v0.11 ― 検索結果の表示には Brave Search を使う場合があります（中継設定時）。<br>
+    えごさ v0.12 ― 検索結果の表示には Brave Search を使う場合があります（中継設定時）。<br>
     訳の取得には MyMemory の無料翻訳を使っています。
   <br>作った人：もずく・らてっくす（<a class="hub-link" href="https://mozk-umino.github.io/">もずくの活動まとめ</a>／<a href="https://x.com/100_99_1e12">X</a>）<br><a href="about.html#ext">Chrome拡張（PC用）のダウンロードと入れ方</a></footer>
 </main>
@@ -143,12 +143,41 @@ let currentWord = "", currentGloss = "", currentMode = "";
 const glossCache = {};
 const PHRASES = ["look forward to","take into account","in other words","on the other hand","as a result","in addition","in particular","in general","for example","according to","in order to","because of","instead of","rather than","as well as","as long as","as soon as","even though","whether or not","not only","first of all","in the end","in short","to begin with","in conclusion","little by little","step by step","one by one","when it comes to","in terms of","come up with","get rid of","find out","look into","point out","bring up","carry out","end up","run into","deal with","focus on","depend on","based on","lead to","result in","consist of","check out","look up","give up","take up","put off","call off","break down","figure out","work out","make sure","turn on","turn off","set up","such as","due to","at least","at most","more than","less than","a lot of","kind of","sort of","used to","be able to","have to","at all","by the way","so far","even if","but also","each other","one another","no longer","on average","per day","go on","keep on","come back"].sort((a,b)=>b.length-a.length);
 
+function pickTranslation(j, src, wantJa){
+  const norm = s => (s || "").trim().toLowerCase().replace(/[.\u3002!?,;:]+$/,"");
+  const isBad = s => { const t = (s || "").trim(); return !t || t === "\uFF08\u7A7A\u6B04\uFF09" || norm(t) === norm(src); };
+  const top = j.responseData && j.responseData.translatedText;
+  if(!isBad(top)) return top;
+  let ms = (j.matches || []).filter(m => m.translation && !isBad(m.translation));
+  if(wantJa) ms = ms.filter(m => /[\u3040-\u30FF\u4E00-\u9FFF]/.test(m.translation));
+  ms.sort((a,b) => ((b.match||0) - (a.match||0)) || ((b.quality||0) - (a.quality||0)));
+  return ms.length ? ms[0].translation : "";
+}
+
+async function jishoGloss(word){
+  try{
+    const r = await fetch("https://jisho.org/api/v1/search/words?keyword=" + encodeURIComponent(word));
+    const j = await r.json();
+    const w = word.toLowerCase();
+    for(const e of (j.data || [])){
+      const defs = [];
+      (e.senses || []).forEach(s => (s.english_definitions || []).forEach(d => defs.push(d.toLowerCase())));
+      if(!defs.some(d => d.split(/[^a-z]+/).includes(w))) continue;
+      const jp = (e.japanese || [])[0] || {};
+      if(jp.word || jp.reading) return jp.word || jp.reading;
+    }
+  }catch(_){ }
+  return "";
+}
+
 async function translate(text, from, to){
   const q = text.replace(/([A-Za-z])-(?=[A-Za-z])/g, "$1 ");
   const u = "https://api.mymemory.translated.net/get?q=" + encodeURIComponent(q) + "&langpair=" + from + "|" + to;
   const r = await fetch(u);
   const j = await r.json();
-  return (j.responseData && j.responseData.translatedText) || "";
+  let out = pickTranslation(j, q, to === "ja");
+  if(!out && from === "en" && to === "ja" && !q.includes(" ")) out = await jishoGloss(q);
+  return out;
 }
 
 function updateDictCount(){ $("#dictCount").textContent = Object.keys(store.dict).length; }
