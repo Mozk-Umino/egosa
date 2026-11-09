@@ -32,6 +32,10 @@
   #article rt{ font-size:9px; color:var(--teal); }
   .w{ cursor:pointer; border-radius:3px; }
   .w:active{ background:#ccfbf1; }
+  .ph{ border-bottom:2px dotted var(--teal); }
+  .s{ cursor:pointer; }
+  nav.top{ margin-top:8px; font-size:13px; }
+  nav.top a{ color:#fff; opacity:.95; margin-right:14px; }
   #bar{ position:fixed; left:0; right:0; bottom:0; background:#111827; color:#fff; padding:12px 16px calc(12px + env(safe-area-inset-bottom)); transform:translateY(110%); transition:transform .18s; }
   #bar.show{ transform:none; }
   #bar .word{ font-size:18px; font-weight:700; }
@@ -46,6 +50,7 @@
 <header>
   <h1>えごさ</h1>
   <p>えいごをさわる ― 日本語で探して、英語を読む</p>
+  <nav class="top"><a href="about.html">考え方と使い方</a><a href="skill.html">えごさSkill（AI用）</a></nav>
 </header>
 <main>
   <section>
@@ -71,6 +76,7 @@
   <section id="readerSec" hidden>
     <h2 id="artTitle">記事</h2>
     <div id="article"></div>
+    <p class="hint">読み方: 単語をタップすると訳が出ます。点線の下線は句やイディオムで、ひとかたまりで意味が出ます。文の単語でない所をタップすると文全体の訳が出ます。範囲を選ぶと、その部分の翻訳も見られます。</p>
   </section>
 
   <section>
@@ -86,7 +92,7 @@
     </details>
   </section>
   <footer>
-    えごさ v0 ― 検索結果の表示には Brave Search を使う場合があります（中継設定時）。<br>
+    えごさ v0.2 ― 検索結果の表示には Brave Search を使う場合があります（中継設定時）。<br>
     訳の取得には MyMemory の無料翻訳を使っています。
   </footer>
 </main>
@@ -108,7 +114,9 @@ const store = {
   get worker(){ return localStorage.getItem("egosa_worker")||""; },
   set worker(u){ localStorage.setItem("egosa_worker", u); }
 };
-let currentWord = "", currentGloss = "";
+let currentWord = "", currentGloss = "", currentMode = "";
+const glossCache = {};
+const PHRASES = ["look forward to","take into account","in other words","on the other hand","as a result","in addition","in particular","in general","for example","according to","in order to","because of","instead of","rather than","as well as","as long as","as soon as","even though","whether or not","not only","first of all","in the end","in short","to begin with","in conclusion","little by little","step by step","one by one","when it comes to","in terms of","come up with","get rid of","find out","look into","point out","bring up","carry out","end up","run into","deal with","focus on","depend on","based on","lead to","result in","consist of","check out","look up","give up","take up","put off","call off","break down","figure out","work out","make sure","turn on","turn off","set up","such as","due to","at least","at most","more than","less than","a lot of","kind of","sort of","used to","be able to","have to","at all","by the way","so far","even if","but also","each other","one another","no longer","on average","per day","go on","keep on","come back"].sort((a,b)=>b.length-a.length);
 
 async function translate(text, from, to){
   const u = "https://api.mymemory.translated.net/get?q=" + encodeURIComponent(text) + "&langpair=" + from + "|" + to;
@@ -189,32 +197,113 @@ async function openArticle(url){
     $("#artTitle").textContent = titleLine ? titleLine.replace(/^Title:\s*/,"") : "記事";
     const paras = lines.filter(s => !s.startsWith("Title:") && !s.startsWith("URL Source:") && !s.startsWith("Markdown Content:")).slice(0, 60);
     const art = $("#article");
-    art.innerHTML = paras.map(p => {
-      const esc = p.replace(/&/g,"&amp;").replace(/</g,"&lt;");
-      return "<p>" + esc.replace(/[A-Za-z][A-Za-z'’-]*/g, m => '<span class="w" data-w="' + m.toLowerCase() + '">' + m + "</span>") + "</p>";
-    }).join("");
+    art.innerHTML = "";
+    paras.forEach(p => {
+      const pel = document.createElement("p");
+      splitSentences(p).forEach(sent => {
+        const sEl = document.createElement("span");
+        sEl.className = "s"; sEl.dataset.sent = sent;
+        sEl.appendChild(wrapUnits(sent));
+        sEl.addEventListener("click", () => tapSentence(sEl));
+        pel.appendChild(sEl); pel.appendChild(document.createTextNode(" "));
+      });
+      art.appendChild(pel);
+    });
     applyRuby(art);
-    art.querySelectorAll(".w").forEach(el => el.addEventListener("click", () => tapWord(el)));
+    art.querySelectorAll(".w").forEach(el => el.addEventListener("click", ev => { ev.stopPropagation(); tapWord(el); }));
   }catch(e){
     $("#artTitle").textContent = "記事";
     $("#article").innerHTML = '<p class="hint">本文が取れませんでした。サイト側で読み取りを止めている場合があります。</p>';
   }
 }
 
+function splitSentences(text){
+  const m = text.match(/[^.!?]+[.!?]+["'”’)]*\s*|[^.!?]+$/g);
+  return (m || [text]).map(x => x.trim()).filter(Boolean);
+}
+function wrapUnits(text){
+  const frag = document.createDocumentFragment();
+  let rest = text;
+  while(rest.length){
+    let hit = null, hitIdx = -1;
+    const lower = rest.toLowerCase();
+    for(const ph of PHRASES){
+      const idx = lower.indexOf(ph);
+      if(idx >= 0 && (hitIdx < 0 || idx < hitIdx || (idx === hitIdx && ph.length > hit.length))){ hit = ph; hitIdx = idx; }
+    }
+    const upto = hit ? hitIdx : rest.length;
+    rest.slice(0, upto).split(/([A-Za-z][A-Za-z'’-]*)/).forEach(part => {
+      if(/^[A-Za-z]/.test(part)){
+        const span = document.createElement("span");
+        span.className = "w"; span.dataset.w = part.toLowerCase(); span.textContent = part;
+        frag.appendChild(span);
+      } else { frag.appendChild(document.createTextNode(part)); }
+    });
+    if(hit){
+      const span = document.createElement("span");
+      span.className = "w ph"; span.dataset.w = hit; span.textContent = rest.slice(hitIdx, hitIdx + hit.length);
+      frag.appendChild(span);
+      rest = rest.slice(hitIdx + hit.length);
+    } else break;
+  }
+  return frag;
+}
+async function tapSentence(el){
+  const sent = el.dataset.sent || "";
+  if(!sent) return;
+  currentMode = "sentence"; currentWord = "";
+  $("#barWord").textContent = sent.length > 42 ? sent.slice(0, 42) + "…" : sent;
+  $("#barGloss").textContent = "翻訳中…";
+  $("#addRuby").style.display = "none";
+  $("#bar").classList.add("show");
+  let t = glossCache["s:" + sent];
+  if(!t){ try{ t = await translate(sent, "en", "ja"); }catch(e){ t = ""; } if(t) glossCache["s:" + sent] = t; }
+  currentGloss = t;
+  $("#barGloss").textContent = t || "（訳が取れませんでした）";
+}
 async function tapWord(el){
   const w = el.dataset.w;
-  currentWord = w;
-  $("#barWord").textContent = w;
+  currentWord = w; currentMode = el.classList.contains("ph") ? "phrase" : "word";
+  $("#barWord").textContent = el.textContent.replace(/\s+/g, " ").trim();
+  $("#addRuby").style.display = "";
   const dict = store.dict;
   if(dict[w]){ currentGloss = dict[w]; $("#barGloss").textContent = dict[w]; }
+  else if(glossCache[w]){ currentGloss = glossCache[w]; $("#barGloss").textContent = currentGloss; }
   else{
     $("#barGloss").textContent = "調べ中…";
     try{ currentGloss = await translate(w, "en", "ja"); }catch(e){ currentGloss = ""; }
+    if(currentGloss) glossCache[w] = currentGloss;
     $("#barGloss").textContent = currentGloss || "（訳が取れませんでした）";
   }
   $("#bar").classList.add("show");
 }
 
+let selText = "";
+function checkSelection(){
+  const sel = window.getSelection(); const t = sel ? sel.toString().trim() : "";
+  const art = $("#article");
+  if(t.length > 12 && /[A-Za-z]/.test(t) && t.split(/\s+/).length >= 2 && art.contains(sel.anchorNode)){
+    selText = t; currentMode = "selection"; currentWord = "";
+    $("#barWord").textContent = t.length > 42 ? t.slice(0, 42) + "…" : t;
+    $("#barGloss").textContent = "バーをタップすると、この範囲を翻訳します";
+    $("#addRuby").style.display = "none";
+    $("#bar").classList.add("show");
+  }
+}
+$("#article").addEventListener("mouseup", () => setTimeout(checkSelection, 10));
+$("#article").addEventListener("touchend", () => setTimeout(checkSelection, 350));
+$("#bar").addEventListener("click", async ev => {
+  if(ev.target.closest("button")) return;
+  if(currentMode === "selection" && selText){
+    currentMode = "busy"; $("#barGloss").textContent = "翻訳中…";
+    let t = glossCache["s:" + selText];
+    if(!t){ try{ t = await translate(selText.slice(0, 450), "en", "ja"); }catch(e){ t = ""; } if(t) glossCache["s:" + selText] = t; }
+    currentGloss = t; currentMode = "selection-done";
+    $("#barGloss").textContent = t || "（訳が取れませんでした）";
+  } else if(currentMode !== "word" && currentMode !== "phrase"){
+    $("#bar").classList.remove("show");
+  }
+});
 $("#addRuby").addEventListener("click", () => {
   if(currentWord && currentGloss){
     const d = store.dict; d[currentWord] = currentGloss; store.dict = d;

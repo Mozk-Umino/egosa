@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{{TITLE}} ― Egosa format</title>
+<style>
+  :root{ --teal:#0f766e; --ink:#1f2937; --sub:#6b7280; --line:#e5e7eb; --bg:#fafaf9; --card:#fff; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif; color:var(--ink); background:var(--bg); }
+  header{ background:var(--teal); color:#fff; padding:14px 16px 12px; }
+  header h1{ margin:0; font-size:18px; }
+  header p{ margin:4px 0 0; font-size:12px; opacity:.9; }
+  main{ max-width:720px; margin:0 auto; padding:14px 14px 96px; }
+  section{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:14px; }
+  h2{ font-size:15px; margin:0 0 10px; }
+  .conclusion{ background:#f0fdfa; border:1px solid #ccfbf1; border-radius:10px; padding:12px; line-height:2.1; }
+  .body{ line-height:2.1; font-size:16px; }
+  .body rt{ font-size:9px; color:var(--teal); }
+  .w{ cursor:pointer; border-radius:3px; }
+  .w:active{ background:#ccfbf1; }
+  .ph{ border-bottom:2px dotted var(--teal); }
+  .s{ cursor:pointer; }
+  blockquote{ margin:0 0 12px; padding:10px 12px; border-left:4px solid var(--teal); background:#f8fafc; line-height:2.1; }
+  .src{ font-size:13px; line-height:1.9; }
+  .src a{ color:var(--teal); word-break:break-all; }
+  #bar{ position:fixed; left:0; right:0; bottom:0; background:#111827; color:#fff; padding:12px 16px calc(12px + env(safe-area-inset-bottom)); transform:translateY(110%); transition:transform .18s; cursor:pointer; }
+  #bar.show{ transform:none; }
+  #bar .word{ font-size:15px; font-weight:700; }
+  #bar .gloss{ font-size:14px; opacity:.92; margin-left:10px; }
+  footer{ font-size:11px; color:var(--sub); text-align:center; line-height:1.7; }
+</style>
+</head>
+
+<body>
+<header>
+  <h1>{{TITLE}}</h1>
+  <p>Egosa format ― Researched: {{DATE}}</p>
+</header>
+<main>
+  <section>
+    <h2>Question</h2>
+    <div class="body">{{QUESTION}}</div>
+  </section>
+  <section>
+    <h2>Conclusion</h2>
+    <div class="conclusion body">{{CONCLUSION}}</div>
+  </section>
+  <section>
+    <h2>Details</h2>
+    <div class="body">
+      <!-- Write everything in English. Wrap each sentence in <span class="s" data-jp="Japanese translation">...</span>
+           so a tap on the sentence shows its translation. Quotes from sources go in blockquote.
+           Fill GLOSS (word taps), PHRASES (idioms / phrasal verbs, dotted underline), RUBY (hard words only) below. -->
+      {{BODY}}
+    </div>
+  </section>
+  <section>
+    <h2>Sources</h2>
+    <div class="src">{{SOURCES}}</div>
+  </section>
+  <section>
+    <h2>Read the original</h2>
+    <div class="src">{{PRIMARY_SOURCE}}</div>
+  </section>
+  <footer>How to read: tap a word for its meaning. Phrases with a dotted line are one unit (idioms). Tap a sentence, away from words, to see the whole sentence in Japanese. Or select any text to translate it.</footer>
+</main>
+<div id="bar"><span class="word" id="barWord"></span><span class="gloss" id="barGloss"></span></div>
+<script>
+"use strict";
+// Three layers, all hidden until asked:
+//  GLOSS   - tap a word: its Japanese meaning appears in the bottom bar.
+//  PHRASES - idioms and phrasal verbs are one unit (dotted underline). Tap for the meaning of the whole phrase.
+//  Sentences - tap a sentence (not on a word): the whole sentence in Japanese appears in the bar.
+//            Mark sentences as <span class="s" data-jp="...">...</span> in the body HTML.
+//  Selection - select any text: the bar offers a translation (online, via a free translation API).
+const GLOSS = {{GLOSS_JSON}};
+const PHRASES = {{PHRASES_JSON}};
+const RUBY = new Set({{RUBY_JSON}});
+const bar = document.getElementById("bar"), barWord = document.getElementById("barWord"), barGloss = document.getElementById("barGloss");
+let barMode = "";
+function showBar(word, gloss, mode){ barWord.textContent = word; barGloss.textContent = gloss; barMode = mode || ""; bar.classList.add("show"); }
+function makeSpan(text, gloss, isPhrase, withRuby){
+  const span = document.createElement("span");
+  span.className = isPhrase ? "w ph" : "w"; span.dataset.g = gloss;
+  if(withRuby){
+    const ruby = document.createElement("ruby"); ruby.textContent = text;
+    const rt = document.createElement("rt"); rt.textContent = gloss; ruby.appendChild(rt);
+    span.appendChild(ruby);
+  } else { span.textContent = text; }
+  span.addEventListener("click", function(e){ e.stopPropagation(); showBar(text, gloss, "dict"); });
+  return span;
+}
+function wrapText(text){
+  const frag = document.createDocumentFragment();
+  const phraseKeys = Object.keys(PHRASES).sort((a,b)=>b.length-a.length);
+  let rest = text;
+  while(rest.length){
+    let hit = null, hitIdx = -1;
+    for(const k of phraseKeys){
+      const idx = rest.toLowerCase().indexOf(k);
+      if(idx >= 0 && (hitIdx < 0 || idx < hitIdx || (idx === hitIdx && k.length > hit.length))){ hit = k; hitIdx = idx; }
+    }
+    const upto = hit ? hitIdx : rest.length;
+    rest.slice(0, upto).split(/([A-Za-z][A-Za-z'’-]*)/).forEach(part => {
+      const key = part.toLowerCase();
+      if(/^[A-Za-z]/.test(part) && GLOSS[key]) frag.appendChild(makeSpan(part, GLOSS[key], false, RUBY.has(key)));
+      else frag.appendChild(document.createTextNode(part));
+    });
+    if(hit){ frag.appendChild(makeSpan(rest.slice(hitIdx, hitIdx + hit.length), PHRASES[hit], true, false)); rest = rest.slice(hitIdx + hit.length); }
+    else break;
+  }
+  return frag;
+}
+function wrapWords(root){
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  while(walker.nextNode()) nodes.push(walker.currentNode);
+  nodes.forEach(node => { if(/[A-Za-z]/.test(node.nodeValue)) node.parentNode.replaceChild(wrapText(node.nodeValue), node); });
+}
+document.querySelectorAll(".body").forEach(wrapWords);
+document.querySelectorAll(".s").forEach(function(el){
+  el.addEventListener("click", function(){ showBar("Sentence", el.dataset.jp || "", "sent"); });
+});
+let selText = "";
+function checkSelection(){
+  const sel = window.getSelection(); const t = sel ? sel.toString().trim() : "";
+  if(t.length > 12 && /[A-Za-z]/.test(t) && t.split(/\s+/).length >= 2){
+    selText = t;
+    showBar(t.length > 60 ? t.slice(0,60) + "…" : t, "Tap here to translate this selection", "sel");
+  }
+}
+document.addEventListener("mouseup", function(){ setTimeout(checkSelection, 10); });
+document.addEventListener("touchend", function(){ setTimeout(checkSelection, 350); });
+bar.addEventListener("click", function(){
+  if(barMode === "sel" && selText){
+    barMode = "busy"; barGloss.textContent = "Translating…";
+    fetch("https://api.mymemory.translated.net/get?langpair=en|ja&q=" + encodeURIComponent(selText.slice(0, 450)))
+      .then(r => r.json())
+      .then(j => { const t = j && j.responseData && j.responseData.translatedText; barGloss.textContent = t || "Translation failed. Try a shorter selection."; barMode = "dict"; })
+      .catch(() => { barGloss.textContent = "Translation needs an internet connection."; barMode = "dict"; });
+  } else { bar.classList.remove("show"); }
+});
+
+</script>
+</body>
+</html>

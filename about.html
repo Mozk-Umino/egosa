@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>考え方と使い方 ― えごさ</title>
+<style>
+  :root{ --teal:#0f766e; --ink:#1f2937; --sub:#6b7280; --line:#e5e7eb; --bg:#fafaf9; --card:#fff; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif; color:var(--ink); background:var(--bg); }
+  header{ background:var(--teal); color:#fff; padding:14px 16px 12px; }
+  header h1{ margin:0; font-size:20px; }
+  header p{ margin:4px 0 0; font-size:12px; opacity:.9; }
+  nav.top{ margin-top:8px; font-size:13px; }
+  nav.top a{ color:#fff; opacity:.95; margin-right:14px; }
+  main{ max-width:720px; margin:0 auto; padding:14px 14px 48px; }
+  section{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:14px; }
+  h2{ font-size:15px; margin:0 0 10px; }
+  p, li{ line-height:1.9; font-size:15px; }
+  p{ margin:0 0 10px; }
+  ol, ul{ margin:0 0 10px; padding-left:22px; }
+  a{ color:var(--teal); }
+  code{ background:#f3f4f6; border-radius:4px; padding:1px 5px; font-size:13px; }
+  footer{ font-size:11px; color:var(--sub); text-align:center; padding:8px 0 20px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>考え方と使い方</h1>
+  <p>えごさの設計思想と、基本的な使い方</p>
+  <nav class="top"><a href="index.html">えごさ本体</a><a href="about.html">考え方と使い方</a><a href="skill.html">えごさSkill（AI用）</a></nav>
+</header>
+<main>
+
+  <section>
+    <h2>なぜ作ったか</h2>
+    <p>英語の勉強は、何度も始めて、何度もやめました。理由はだいたい3つあります。</p>
+    <p>1つ目は、日本語でやらなければいけないことが多すぎて、英語に回す時間と気力が残らないことです。2つ目は、英語ができるようになった後に、特にしたいことがないことです。3つ目は、分からない状態がつらくて、結局は日本語の情報に戻ってしまうことです。</p>
+  </section>
+  <section>
+    <h2>発想の転換</h2>
+    <p>そこで、英語を勉強する時間を新しく作るのはやめました。代わりに、普段の調べ物や情報収集に英語を混ぜることにしました。</p>
+    <p>日本語で検索すると、出てくるのは日本語の情報です。探す言語を英語に変えるだけで、入ってくる情報が英語になります。勉強ではなく、入口の言語を変えるだけです。</p>
+  </section>
+  <section>
+    <h2>えごさの仕組み</h2>
+    <p>検索は日本語で入力します。えごさが英語に直して、英語のページだけを探します。出てきた記事は、えごさの中でそのまま読めます。</p>
+    <p>読むときの助けも付けました。単語をタップすると訳が出ます。句やイディオムは、ひとかたまりで意味が出ます。文全体の訳もタップで見られます。分からない状態で止まる時間を、できるだけ短くするためです。</p>
+    <p>タップして調べた単語は、ふりがなとして貯められます。次に同じ単語が出てきたときは、最初からルビ付きで表示されます。調べるたびに、自分の辞書が少しずつ育ちます。</p>
+  </section>
+  <section>
+    <h2>正直なところ</h2>
+    <p>えごさを使えば英語が話せるようになるとは言いません。狙っているのは、努力しなくても英語に触れる量が増える状態です。続かない方法より、続く仕組みのほうを優先しました。</p>
+  </section>
+  <section>
+    <h2>使い方</h2>
+    <ol>
+      <li>検索欄に、日本語で調べたいことを書いて「さがす」を押します。</li>
+      <li>英語に直された検索語で、英語のページだけが探されます。結果をタップすると、記事がえごさの中で開きます。検索の中継がまだ設定されていない場合は外部の英語検索が開くので、記事のURLをコピーして「記事をひらく」に貼ってください。</li>
+      <li>記事を読みます。単語はタップ、句は点線の部分をタップ、文は単語でない所をタップすると訳が出ます。範囲を選んで翻訳することもできます。</li>
+      <li>覚えたい単語は「ふりがなに貯める」を押します。次からはルビ付きで出ます。</li>
+    </ol>
+  </section>
+  <section>
+    <h2>設定について</h2>
+    <p>検索結果をえごさの中で一覧表示するには、検索中継（Cloudflare Worker）の設定が別途必要です。設定の欄から中継URLを保存してください。中継がなくても、外部の検索を開いてURLを貼る形で使えます。</p>
+  </section>
+
+</main>
+<footer>えごさ ― えいごをさわる</footer>
+</body>
+</html>

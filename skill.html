@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>えごさSkillの解説 ― えごさ</title>
+<style>
+  :root{ --teal:#0f766e; --ink:#1f2937; --sub:#6b7280; --line:#e5e7eb; --bg:#fafaf9; --card:#fff; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif; color:var(--ink); background:var(--bg); }
+  header{ background:var(--teal); color:#fff; padding:14px 16px 12px; }
+  header h1{ margin:0; font-size:20px; }
+  header p{ margin:4px 0 0; font-size:12px; opacity:.9; }
+  nav.top{ margin-top:8px; font-size:13px; }
+  nav.top a{ color:#fff; opacity:.95; margin-right:14px; }
+  main{ max-width:720px; margin:0 auto; padding:14px 14px 48px; }
+  section{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:14px; }
+  h2{ font-size:15px; margin:0 0 10px; }
+  p, li{ line-height:1.9; font-size:15px; }
+  p{ margin:0 0 10px; }
+  ol, ul{ margin:0 0 10px; padding-left:22px; }
+  a{ color:var(--teal); }
+  code{ background:#f3f4f6; border-radius:4px; padding:1px 5px; font-size:13px; }
+  footer{ font-size:11px; color:var(--sub); text-align:center; padding:8px 0 20px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>えごさSkillの解説</h1>
+  <p>AIに「えごさで調べて」と頼むためのSkill</p>
+  <nav class="top"><a href="index.html">えごさ本体</a><a href="about.html">考え方と使い方</a><a href="skill.html">えごさSkill（AI用）</a></nav>
+</header>
+<main>
+
+  <section>
+    <h2>Skillとは</h2>
+    <p>Skillは、AIエージェント（Claude Codeなど）に読み込ませる指示書の集まりです。決められた場所にファイルを置くと、AIがその指示に沿って動くようになります。</p>
+    <p>えごさSkillは、調べ物をするときの出力形式を指定するSkillです。</p>
+  </section>
+  <section>
+    <h2>えごさSkillで何が起きるか</h2>
+    <p>AIに「えごさで調べて」と頼むと、AIは英語の一次情報を当たりに行きます。そして結果を、えごさ形式のHTMLで返します。</p>
+    <p>えごさ形式では、見える面は全部英語です。タイトルも、結論も、本文も英語で書かれます。ふりがなは難しい単語だけに付き、日本語訳は単語をタップしたときに初めて出ます。句やイディオムと、文単位の訳も用意されます。</p>
+    <p>調べ物の入り口が英語になるので、AIに頼むたびに、少しだけ英語を読むことになります。</p>
+  </section>
+  <section>
+    <h2>入手と導入</h2>
+    <p>GitHubのegosaリポジトリにある <a href="https://github.com/Mozk-Umino/egosa/tree/main/skill">skillフォルダ</a> に、<code>SKILL.md</code> と <code>template.html</code> の2ファイルが入っています。</p>
+    <p>導入は3手順です。</p>
+    <ol>
+      <li>skillフォルダの2ファイルをダウンロードします。</li>
+      <li>使っているAIツールのSkill置き場に、<code>egosa-research</code> という名前のフォルダを作り、2ファイルを入れます。置き場はツールごとに違います。Claude Codeでは <code>~/.claude/skills/</code> が目安です。</li>
+      <li>AIに「えごさで調べて ○○」と頼みます。返ってきたHTMLファイルをブラウザで開けば、えごさ形式で読めます。</li>
+    </ol>
+  </section>
+  <section>
+    <h2>注意点</h2>
+    <p>このSkillは出力の形式を指定するものです。調査そのものの質は、使うAIやモデルに依存します。</p>
+    <p>HTMLは単体で開けますが、範囲を選んで翻訳する機能にはインターネット接続が必要です。</p>
+    <p>無料で公開しています。えごさ本体とあわせて使えますが、Skillだけでも動きます。</p>
+  </section>
+
+</main>
+<footer>えごさ ― えいごをさわる</footer>
+</body>
+</html>
