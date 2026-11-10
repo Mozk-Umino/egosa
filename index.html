@@ -90,7 +90,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <input type="url" id="url" placeholder="英語記事のURLを貼る" autocomplete="off">
       <button id="openBtn">ひらく</button>
     </div>
-    <p class="hint">検索結果をタップしても開けます。本文だけを取り出して表示するので、広告やメニューは入りません。</p>
+    <p class="hint">検索結果をタップしても開けます。本文だけを取り出して表示するので、広告やメニューは入りません。えごさのURLの後ろに「?url=」と記事のURLを付けたリンクからも、直接開けます。</p>
     <details id="pasteDetails" style="margin-top:10px;">
       <summary>テキストを貼って読む（取れないページ用）</summary>
       <p class="hint">CAPTCHAやログインが必要で本文を取り込めないページは、元のページで本文をコピーして、ここに貼ると同じように読めます。</p>
@@ -120,7 +120,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </details>
   </section>
   <footer>
-    えごさ v0.16 ― 検索結果の表示には Brave Search を使う場合があります（中継設定時）。<br>
+    えごさ v0.17 ― 検索結果の表示には Brave Search を使う場合があります（中継設定時）。<br>
     訳の取得には MyMemory の無料翻訳を使っています。
   <br>作った人：もずく・らてっくす（<a class="hub-link" href="https://mozk-umino.github.io/">もずくの活動まとめ</a>／<a href="https://x.com/100_99_1e12">X</a>）<br><a href="about.html#ext">Chrome拡張（PC用）のダウンロードと入れ方</a></footer>
 </main>
@@ -436,6 +436,11 @@ $("#workerUrl").value = store.worker;
 $("#saveWorker").addEventListener("click", () => { store.worker = $("#workerUrl").value.trim(); alert("保存しました"); });
 $("#clearDict").addEventListener("click", () => { if(confirm("貯まったふりがなを全部消しますか？")){ store.dict = {}; updateDictCount(); location.reload(); } });
 updateDictCount();
+// URLパラメータ ?url= で記事を直接開く（v0.17）
+try{
+  const target = (new URLSearchParams(location.search).get("url") || "").trim();
+  if(/^https?:\/\//i.test(target)){ openArticle(target); }
+}catch(e){ /* パラメータが壊れていても通常起動を優先する */ }
 if("serviceWorker" in navigator){ navigator.serviceWorker.register("sw.js").catch(()=>{}); }
 </script>
 <script>
